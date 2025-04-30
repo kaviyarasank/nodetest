@@ -1,11 +1,13 @@
 const express = require("express");
-const { MongoClient,ObjectId } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const Joi = require("joi");
+const cors = require("cors");
 
 const app = express();
 const port = 4000;
 
 app.use(express.json());
+app.use(cors());
 
 const url = "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.4.2";
 
@@ -41,6 +43,28 @@ const userSchema = Joi.object({
 });
 
 
+app.post("/create-payment-intent", async (req, res) => {
+    const stripe = require('stripe')('sk_test_51RCFqbI0DOKU7Ws7P12AfYFY17eRGqg4nKbVazOzaC0BOC1YaGbqiHYRuSVmtlCxsvMsNBtVusa3iI7GicSsPHU900ZmAR1BfE');
+    try{
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: req.body.amount,
+            currency: req.body.currency,
+            automatic_payment_methods: {
+                enabled: true,
+            },
+        });
+        console.log("paymentIntent",paymentIntent);
+        res.send({
+            clientSecret: paymentIntent.client_secret,
+        });
+    }
+    catch (error) {
+        res.status(500).send(error?.raw?.message || error);
+
+    }
+});
+
+
 app.post("/createdbusers", async (req, res) => {
     try {
         const db = await connectDB();
@@ -67,11 +91,11 @@ app.get("/users", async (req, res) => {
 
 app.post("/users", async (req, res) => {
     try {
-         // Validate request body
-         const { error } = userSchema.validate(req.body);
-         if (error) {
-             return res.status(400).json({ message: error.details[0].message });
-         }
+        // Validate request body
+        const { error } = userSchema.validate(req.body);
+        if (error) {
+            return res.status(400).json({ message: error.details[0].message });
+        }
 
         const db = await connectDB();
         const result = await db.collection("users").insertOne(req.body);
