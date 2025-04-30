@@ -42,9 +42,9 @@ const userSchema = Joi.object({
         })
 });
 
-
+// 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
 app.post("/create-payment-intent", async (req, res) => {
-    const stripe = require('stripe')('sk_test_51RCFqbI0DOKU7Ws7P12AfYFY17eRGqg4nKbVazOzaC0BOC1YaGbqiHYRuSVmtlCxsvMsNBtVusa3iI7GicSsPHU900ZmAR1BfE');
+    const stripe = require('stripe')('');
     try{
         const paymentIntent = await stripe.paymentIntents.create({
             amount: req.body.amount,
